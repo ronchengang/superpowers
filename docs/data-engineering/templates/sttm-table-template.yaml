@@ -1,0 +1,59 @@
+# field_mutability: see docs/data-engineering/templates/sttm-field-mutability.md
+
+# Source-to-Target Mapping: <target_table>
+# Domain: <domain>
+# STTM path: docs/data-engineering/sttm/<domain>/<target_table>.yaml
+
+metadata:
+  domain: "<domain>"
+  target_layer: "<bronze|silver-cdm|silver-ref|silver|gold-mart|gold-app|gold-proxy>"
+  owner: "<team or person>"
+  status: skeleton  # skeleton | plan_complete | implemented
+  design_spec: "docs/data-engineering/specs/YYYY-MM-DD-<domain>-design.md"
+  plan_ref: "docs/data-engineering/plans/YYYY-MM-DD-<domain>/0N-<layer>.md"
+
+source:
+  system: "<source_system>"
+  table: "<source_table>"
+  column: "<source_column_or_*>"  # repeat block per column mapping below
+
+target:
+  layer: "<target_layer>"
+  table: "<target_table>"
+  column: "<target_column>"
+
+mappings:
+  - source_column: "<source_col>"
+    target_column: "<target_col>"
+    data_type: "<spark_or_sql_type>"
+    transform_rule: "<business rule — implementation_detail>"
+    spark_sql_snippet: "<optional — implementation_detail>"
+    null_default: "<value_or_null>"
+    notes: "<implementation_detail>"
+
+load_semantics:
+  load_type: "<full|incremental|merge>"
+  incremental_key: "<column>"
+  partition_columns: ["<col1>", "<col2>"]
+  merge_keys: ["<key1>"]
+  watermark_column: "<optional>"
+  backfill_notes: "<optional>"
+
+quality:
+  ge_expectations:
+    - expectation_type: "<e.g. expect_column_values_to_not_be_null>"
+      column: "<col>"
+      kwargs: {}  # threshold tweaks are implementation_detail
+      mandatory: true
+  idempotency_test_required: true  # required when load_type is incremental or merge
+
+lineage:
+  upstream_tables: ["<schema.table>"]
+  downstream_tables: ["<schema.table>"]
+  design_lineage_file: "docs/data-engineering/plans/.../lineage/0N-<layer>.mmd"
+
+orchestration:
+  airflow_dag_id: "<frozen_after_plan_approved>"
+  airflow_task_id: "<implementation_detail>"
+  databricks_job_or_notebook: "<implementation_detail>"
+  refresh_sla: "<e.g. T+1 06:00 UTC>"

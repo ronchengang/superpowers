@@ -4,12 +4,18 @@ import { fileURLToPath } from "node:url";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const EXTREMELY_IMPORTANT_MARKER = "<EXTREMELY_IMPORTANT>";
-const BOOTSTRAP_MARKER = "superpowers:using-superpowers bootstrap for pi";
+const BOOTSTRAP_MARKER = "using-data-superpowers bootstrap for pi";
 
 const extensionDir = dirname(fileURLToPath(import.meta.url));
 const packageRoot = resolve(extensionDir, "../..");
 const skillsDir = resolve(packageRoot, "skills");
-const bootstrapSkillPath = resolve(skillsDir, "using-superpowers", "SKILL.md");
+const bootstrapSkillPath = resolve(skillsDir, "using-data-superpowers", "SKILL.md");
+const bootstrapSkillFallbackPath = resolve(
+	skillsDir,
+	"_archived",
+	"using-superpowers",
+	"SKILL.md",
+);
 
 let cachedBootstrap: string | null | undefined;
 
@@ -59,15 +65,26 @@ export default function superpowersPiExtension(pi: ExtensionAPI) {
 function getBootstrapContent(): string | null {
 	if (cachedBootstrap !== undefined) return cachedBootstrap;
 
+	let skillContent: string;
 	try {
-		const skillContent = readFileSync(bootstrapSkillPath, "utf8");
+		skillContent = readFileSync(bootstrapSkillPath, "utf8");
+	} catch {
+		try {
+			skillContent = readFileSync(bootstrapSkillFallbackPath, "utf8");
+		} catch {
+			cachedBootstrap = null;
+			return null;
+		}
+	}
+
+	try {
 		const body = stripFrontmatter(skillContent);
 		cachedBootstrap = `${EXTREMELY_IMPORTANT_MARKER}
 ${BOOTSTRAP_MARKER}
 
-You have superpowers.
+You have data-engineering superpowers.
 
-The using-superpowers skill content is included below and is already loaded for this Pi session. Follow it now. Do not try to load using-superpowers again.
+The using-data-superpowers skill content is included below and is already loaded for this Pi session. Follow it now. Do not try to load using-data-superpowers again.
 
 ${body}
 
